@@ -44,11 +44,11 @@ jobs:
     - name: Authorize Docker push
       run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev --quiet
 
-    - name: Enable Google Cloud Services
-      run: |-
-        gcloud services enable \\
-          artifactregistry.googleapis.com \\
-          run.googleapis.com
+    - name: Enable Artifact Registry
+      run: gcloud services enable artifactregistry.googleapis.com --project=${{ env.GCP_PROJECT_ID }}
+
+    - name: Enable Cloud Run
+      run: gcloud services enable run.googleapis.com --project=${{ env.GCP_PROJECT_ID }}
 
     # No 'Create Google Credentials File from Secret' step needed as no GOOGLE_APPLICATION_CREDENTIALS required at runtime
 
