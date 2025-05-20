@@ -26,6 +26,29 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Get GitHub OIDC Token
+      id: oidc_token
+      uses: actions/github-script@v7 # Updated to v7
+      with:
+        script: |
+          const token = await core.getIDToken('sts.googleapis.com')
+          core.setOutput('token', token)
+          // Do not print the raw token to logs directly for security in general cases
+          // We will decode it in the next step
+
+    - name: Decode OIDC Token
+      run: |
+        echo "Decoding OIDC Token..."
+        # Extract payload (second part of JWT), decode base64, and print with jq
+        # Ensure jq is available; GitHub runners usually have it.
+        token_payload=$(echo "${{ steps.oidc_token.outputs.token }}" | cut -d. -f2)
+        if [[ -z "$token_payload" ]]; then
+          echo "Error: OIDC token payload is empty!"
+          exit 1
+        fi
+        echo "$token_payload" | base64 --decode | jq .
+      shell: bash
+
     - name: Google Auth
       id: auth
       uses: 'google-github-actions/auth@v2'
