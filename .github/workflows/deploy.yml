@@ -30,8 +30,13 @@ jobs:
       id: auth
       uses: 'google-github-actions/auth@v2'
       with:
-        workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }} # Assumes you'll set this secret
-        service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }} # Assumes you'll set this secret
+        workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+        service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+        export_environment_variables: true
+
+    - name: Display Federated Subject
+      run: |
+        echo "Federated Subject is: $GOOGLE_WORKLOAD_IDENTITY_SUBJECT"
 
     - name: Set up Cloud SDK
       uses: 'google-github-actions/setup-gcloud@v2'
