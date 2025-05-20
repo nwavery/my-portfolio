@@ -3,7 +3,7 @@ import { FaGithub, FaLinkedin, FaEnvelope } from 'react-icons/fa';
 const Contact = () => {
   const emailAddress = "nwavette@gmail.com";
   const githubUrl = "https://github.com/nwavery";
-  const linkedinUrl = "https://www.linkedin.com/in/your-linkedin-profile-here"; // Replace with your actual LinkedIn URL
+  const linkedinUrl = "https://www.linkedin.com/in/nathan-avery-009697283/"; // Replace with your actual LinkedIn URL
 
   return (
     <section id="contact" className="w-full py-16 md:py-24 bg-neutral-800 text-gray-300">

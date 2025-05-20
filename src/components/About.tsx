@@ -10,7 +10,7 @@ const About = () => {
             I am a seasoned Software Engineer with over 7 years of professional experience, complemented by 8 prior years in diverse IT roles, from hardware support to managing help desk teams. My journey has equipped me with a robust skill set and a deep understanding of technology solutions.
           </p>
           <p className="text-lg md:text-xl leading-relaxed">
-            I hold Bachelor's degrees in Computer Science, Physics, and Mathematics, providing a strong theoretical foundation for my practical skills. I have expert knowledge in Apache Kafka and a comprehensive understanding of microservices architecture, Java development (including Spring Boot, Spring MVC, and more), and various database technologies like MySQL, MongoDB, and DynamoDB. My experience also extends to front-end technologies such as Angular and React, and cloud platforms like AWS and GCP.
+            I hold Bachelor's degrees in Computer Science, Physics, and Mathematics, providing a strong theoretical foundation for my practical skills. I have expert knowledge in Apache Kafka and a comprehensive understanding of microservices architecture, Java development (including Spring Boot, Micronaut, and more), and various database technologies like MySQL, MongoDB, and DynamoDB. My experience also extends to front-end technologies such as Angular and React, and cloud platforms like AWS and GCP.
           </p>
           <p className="text-lg md:text-xl leading-relaxed">
             With the rapid advancements in AI, I've dedicated personal time to exploring new models and hardware, even running a local version of DeepSeek. I am passionate about diving into this new AI era and eager to contribute to innovative projects.

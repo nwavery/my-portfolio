@@ -1,0 +1,84 @@
+# .github/workflows/deploy.yml
+
+name: Deploy Portfolio to Cloud Run
+
+on:
+  push:
+    branches: [ main ] # Trigger deployment only on pushes to the main branch
+
+env:
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }} # Assumes you'll set this secret in GitHub
+  GCP_REGION: us-central1
+  CLOUD_RUN_SERVICE_NAME: my-portfolio-website # <-- UPDATED
+  ARTIFACT_REGISTRY_REPOSITORY: my-portfolio-images # <-- UPDATED
+  # No specific build-time env vars like PRODUCTION_URL or Stripe keys needed for this project
+
+jobs:
+  deploy:
+    name: Build and Deploy Portfolio
+    runs-on: ubuntu-latest
+    # Add permissions necessary for Workload Identity Federation
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Google Auth
+      id: auth
+      uses: 'google-github-actions/auth@v2'
+      with:
+        workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }} # Assumes you'll set this secret
+        service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }} # Assumes you'll set this secret
+
+    - name: Set up Cloud SDK
+      uses: 'google-github-actions/setup-gcloud@v2'
+
+    - name: Authorize Docker push
+      run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev --quiet
+
+    - name: Enable Google Cloud Services
+      run: |-
+        gcloud services enable \\
+          artifactregistry.googleapis.com \\
+          run.googleapis.com
+
+    # No 'Create Google Credentials File from Secret' step needed as no GOOGLE_APPLICATION_CREDENTIALS required at runtime
+
+    - name: Build and Push Docker image using Cloud Build
+      env:
+        # Cloud Build will use substitutions from cloudbuild.yaml
+        # We pass the project ID explicitly here for clarity, though it's also available as a built-in var in Cloud Build
+        PROJECT_ID: ${{ env.GCP_PROJECT_ID }}
+        # SHA tag is for the final Cloud Run deployment, :latest is built by cloudbuild.yaml
+        IMAGE_SHA_TAG: ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY_REPOSITORY }}/${{ env.CLOUD_RUN_SERVICE_NAME }}:${{ github.sha }}
+      run: |-
+        # Submit to Cloud Build (which uses cloudbuild.yaml)
+        gcloud builds submit . \\
+          --config=cloudbuild.yaml \\
+          --substitutions=_GCP_REGION='${{ env.GCP_REGION }}',_ARTIFACT_REGISTRY_REPOSITORY='${{ env.ARTIFACT_REGISTRY_REPOSITORY }}',_SERVICE_NAME='${{ env.CLOUD_RUN_SERVICE_NAME }}'
+
+        # After Cloud Build pushes :latest, tag that image with the specific git SHA for deployment
+        # This avoids building the image twice
+        docker pull ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY_REPOSITORY }}/${{ env.CLOUD_RUN_SERVICE_NAME }}:latest
+        docker tag ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY_REPOSITORY }}/${{ env.CLOUD_RUN_SERVICE_NAME }}:latest $IMAGE_SHA_TAG
+        docker push $IMAGE_SHA_TAG
+
+    # No 'Get Secrets from Secret Manager' step needed
+
+    - name: Deploy to Cloud Run
+      uses: google-github-actions/deploy-cloudrun@v2
+      with:
+        service: ${{ env.CLOUD_RUN_SERVICE_NAME }}
+        image: ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY_REPOSITORY }}/${{ env.CLOUD_RUN_SERVICE_NAME }}:${{ github.sha }}
+        region: ${{ env.GCP_REGION }}
+        flags: |
+          --allow-unauthenticated
+          --platform=managed
+          # No runtime environment variables needed for this project beyond default NODE_ENV=production set in Dockerfile
+
+    - name: Output Cloud Run URL
+      run: |
+        echo "Cloud Run URL: $(gcloud run services describe ${{ env.CLOUD_RUN_SERVICE_NAME }} --platform managed --region ${{ env.GCP_REGION }} --format 'value(status.url)')" 

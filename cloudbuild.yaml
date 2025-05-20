@@ -1,0 +1,29 @@
+# cloudbuild.yaml
+
+# Explicitly build and tag with :latest, then let the 'images' field handle the push.
+# Dynamic tagging ($SHORT_SHA) will be done in the GitHub Actions workflow AFTER the build.
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    id: Build
+    args:
+      - 'build'
+      # Tag directly with the full :latest path
+      - '--tag'
+      - '${_GCP_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY_REPOSITORY}/${_SERVICE_NAME}:latest'
+      # Specify the build context directory
+      - '.'
+
+# This tells Cloud Build to push the image tagged ':latest' in the step above.
+images:
+  - '${_GCP_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY_REPOSITORY}/${_SERVICE_NAME}:latest'
+
+# Define expected substitution variables needed ONLY for build arguments
+substitutions:
+  # Built-in PROJECT_ID is automatically available
+  # Defaults, can be overridden if needed
+  _GCP_REGION: 'us-central1' 
+  _ARTIFACT_REGISTRY_REPOSITORY: 'my-portfolio-images' # <-- UPDATED
+  _SERVICE_NAME: 'my-portfolio-website' # <-- UPDATED
+  # No build-time arguments needed for this project
+
+# Removed options block 
