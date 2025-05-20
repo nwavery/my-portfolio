@@ -86,4 +86,7 @@ jobs:
 
     - name: Output Cloud Run URL
       run: |
-        echo "Cloud Run URL: $(gcloud run services describe ${{ env.CLOUD_RUN_SERVICE_NAME }} --platform managed --region ${{ env.GCP_REGION }} --format 'value(status.url)')" 
+        echo "Cloud Run URL: $(gcloud run services describe ${{ env.CLOUD_RUN_SERVICE_NAME }} --platform managed --region ${{ env.GCP_REGION }} --format 'value(status.url)')"
+
+    - name: Test gcloud auth
+      run: gcloud run services list --project=${{ env.GCP_PROJECT_ID }} --region=${{ env.GCP_REGION }} 
