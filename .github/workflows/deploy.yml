@@ -32,9 +32,10 @@ jobs:
       with:
         script: |
           let token = ''
+          const specificAudience = '//iam.googleapis.com/projects/5320617780/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
           try {
-            console.log('Attempting to get OIDC token...')
-            token = await core.getIDToken() // Using default audience
+            console.log(`Attempting to get OIDC token for audience: ${specificAudience}`)
+            token = await core.getIDToken(specificAudience)
             if (token) {
               console.log('Successfully got OIDC token.')
             } else {
