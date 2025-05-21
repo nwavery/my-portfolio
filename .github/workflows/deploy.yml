@@ -84,7 +84,8 @@ jobs:
         flags: |
           --allow-unauthenticated
           --platform=managed
-          # No runtime environment variables needed for this project beyond default NODE_ENV=production set in Dockerfile
+          # The comment above was causing issues, removing it.
+          # If other flags are needed in the future, they can be added here, one per line.
 
     - name: Output Cloud Run URL
       run: |
