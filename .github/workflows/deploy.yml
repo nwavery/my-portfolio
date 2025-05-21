@@ -84,8 +84,6 @@ jobs:
         flags: |
           --allow-unauthenticated
           --platform=managed
-          # The comment above was causing issues, removing it.
-          # If other flags are needed in the future, they can be added here, one per line.
 
     - name: Output Cloud Run URL
       run: |
