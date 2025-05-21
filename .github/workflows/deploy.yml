@@ -37,19 +37,29 @@ jobs:
     - name: Decode OIDC Token
       run: |
         echo "Decoding OIDC Token..."
-        token_payload=$(echo "${{ steps.oidc_token.outputs.token }}" | cut -d. -f2)
-        if [[ -z "$token_payload" || "$token_payload" == "" ]]; then
-          echo "Error: OIDC token payload is empty or could not be extracted!"
-          # Optionally, print the whole token if payload is problematic, for deeper debugging
-          # echo "Full token: ${{ steps.oidc_token.outputs.token }}"
+        jwt_token="${{ steps.oidc_token.outputs.token }}"
+
+        if [[ -z "$jwt_token" || "$jwt_token" == "" ]]; then
+          echo "Error: GitHub OIDC token from previous step is empty!"
           exit 1
         fi
+
+        token_payload=$(echo "$jwt_token" | cut -d. -f2)
+
+        if [[ -z "$token_payload" || "$token_payload" == "" ]]; then
+          echo "Error: OIDC token payload is empty or could not be extracted after cut."
+          echo "Full token was: $jwt_token"
+          exit 1
+        fi
+        
         # Attempt to decode, supressing base64 errors for this informational step
         decoded_payload=$(echo "$token_payload" | base64 --decode 2>/dev/null)
+        
         if [[ -z "$decoded_payload" ]]; then
-          echo "Error: Failed to decode token payload. Raw payload was: $token_payload"
+          echo "Error: Failed to decode token payload. Raw payload part was: $token_payload"
           exit 1
         fi     
+        echo "Successfully decoded payload:"
         echo "$decoded_payload" | jq .
       shell: bash
 
